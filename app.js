@@ -4300,9 +4300,22 @@ audio.addEventListener('timeupdate', () => {
   if (!audio.duration) return;
   localStorage.setItem('currentTime', audio.currentTime);
   const pct = (audio.currentTime / audio.duration) * 100;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-thumb').style.left = pct + '%';
+  
+  // Update desktop bar
+  const df = document.getElementById('progress-fill');
+  const dt = document.getElementById('progress-thumb');
+  if (df) df.style.width = pct + '%';
+  if (dt) dt.style.left = pct + '%';
   document.getElementById('current-time').textContent = formatTime(audio.currentTime);
+
+  // Sync FS player
+  const ff = document.getElementById('fs-progress-fill');
+  const ft = document.getElementById('fs-progress-thumb');
+  if (ff) ff.style.width = pct + '%';
+  if (ft) ft.style.left = pct + '%';
+  const fct = document.getElementById('fs-current-time');
+  if (fct) fct.textContent = formatTime(audio.currentTime);
+
   // sync mini progress
   const mf = document.getElementById('mini-progress-fill');
   if (mf) mf.style.width = pct + '%';
@@ -4310,6 +4323,8 @@ audio.addEventListener('timeupdate', () => {
 
 audio.addEventListener('loadedmetadata', () => {
   document.getElementById('total-time').textContent = formatTime(audio.duration);
+  const ft = document.getElementById('fs-total-time');
+  if (ft) ft.textContent = formatTime(audio.duration);
 });
 
 audio.addEventListener('ended', () => {
@@ -4322,19 +4337,38 @@ audio.addEventListener('pause', () => { isPlaying = false; updatePlayIcon(); spi
 
 function seekTrack(e) {
   if (!audio.duration) return;
-  const bar = document.getElementById('progress-bar');
+  const bar = e.currentTarget || document.getElementById('progress-bar');
   const rect = bar.getBoundingClientRect();
-  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
   audio.currentTime = pct * audio.duration;
 }
 
 // drag seek
 function setupDrag() {
-  const bar = document.getElementById('progress-bar');
+  const bars = [document.getElementById('progress-bar'), document.getElementById('fs-progress-bar')];
   let dragging = false;
-  bar.addEventListener('mousedown', e => { dragging = true; seekTrack(e); });
+
+  bars.forEach(bar => {
+    if (!bar) return;
+    
+    // Mouse
+    bar.addEventListener('mousedown', e => { dragging = true; seekTrack(e); });
+    
+    // Touch
+    bar.addEventListener('touchstart', e => { dragging = true; seekTrack(e); }, { passive: false });
+  });
+
   document.addEventListener('mousemove', e => { if (dragging) seekTrack(e); });
+  document.addEventListener('touchmove', e => { 
+    if (dragging) {
+      e.preventDefault(); // prevent scroll while seeking
+      seekTrack(e);
+    }
+  }, { passive: false });
+
   document.addEventListener('mouseup', () => { dragging = false; });
+  document.addEventListener('touchend', () => { dragging = false; });
 }
 
 // ── PLAYLIST LOADER ────────────────────────────────────────────────────────
@@ -4421,10 +4455,31 @@ function updatePlayerUI(song) {
   document.getElementById('play-icon').className = 'fas fa-pause';
   document.title = `${song.title} – Playdio`;
 
+  // ── sync full screen player ──
+  const fsPlayer = document.getElementById('fs-player');
+  if (fsPlayer) {
+    const fsTitle = document.getElementById('fs-title');
+    const fsArtist = document.getElementById('fs-artist');
+    const fsArt = document.getElementById('fs-art');
+    const fsHeart = document.querySelector('.fs-heart');
+    if (fsTitle) fsTitle.textContent = song.title;
+    if (fsArtist) fsArtist.textContent = song.artist;
+    if (fsArt) fsArt.src = song.image || 'Playdio icon.png';
+    if (fsHeart) {
+      if (likedSongs.has(song.id)) fsHeart.classList.add('liked');
+      else fsHeart.classList.remove('liked');
+    }
+  }
+
   // ── sync mini player ──
   const mini = document.getElementById('mini-player');
   if (mini) {
     mini.classList.add('show');
+    mini.onclick = (e) => {
+      // Don't open if a button inside was clicked
+      if (e.target.closest('.mini-ctrl')) return;
+      toggleFSPlayer();
+    };
     const miniTitle = document.getElementById('mini-title');
     const miniArtist = document.getElementById('mini-artist');
     const miniArt = document.getElementById('mini-art');
@@ -4458,6 +4513,8 @@ function updatePlayIcon() {
   document.getElementById('play-icon').className = icon;
   const miniIcon = document.getElementById('mini-play-icon');
   if (miniIcon) miniIcon.className = icon;
+  const fsIcon = document.getElementById('fs-play-icon');
+  if (fsIcon) fsIcon.className = icon;
 }
 
 function spinVinyl(on) {
@@ -4467,6 +4524,12 @@ function spinVinyl(on) {
 }
 
 // ── FULLSCREEN ─────────────────────────────────────────────────────────────
+let fsPlayerOpen = false;
+function toggleFSPlayer() {
+  fsPlayerOpen = !fsPlayerOpen;
+  document.getElementById('fs-player').classList.toggle('active', fsPlayerOpen);
+}
+
 function toggleFullscreen() {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
   else document.exitFullscreen();

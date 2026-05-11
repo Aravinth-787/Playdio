@@ -236,6 +236,55 @@
     </div>
   </div>
 
+  <!-- ═══════════════  FULLSCREEN PLAYER (MOBILE) ═══════════════ -->
+  <div class="fs-player" id="fs-player">
+    <div class="fs-header">
+      <button class="fs-close" onclick="toggleFSPlayer()"><i class="fas fa-chevron-down"></i></button>
+      <div class="fs-header-text">Now Playing</div>
+      <button class="fs-menu"><i class="fas fa-ellipsis-v"></i></button>
+    </div>
+
+    <div class="fs-content">
+      <div class="fs-art-wrap">
+        <img src="Playdio icon.png" alt="art" id="fs-art" />
+      </div>
+
+      <div class="fs-info">
+        <div class="fs-title-row">
+          <div class="fs-meta">
+            <h2 id="fs-title">Select a song</h2>
+            <p id="fs-artist">Playdio</p>
+          </div>
+          <button class="fs-heart" onclick="toggleLike()"><i class="far fa-heart"></i></button>
+        </div>
+      </div>
+
+      <div class="fs-seek-wrap">
+        <div class="fs-progress-bar" id="fs-progress-bar" onclick="seekTrack(event)">
+          <div class="fs-progress-fill" id="fs-progress-fill"></div>
+          <div class="fs-progress-thumb" id="fs-progress-thumb"></div>
+        </div>
+        <div class="fs-time-row">
+          <span id="fs-current-time">0:00</span>
+          <span id="fs-total-time">0:00</span>
+        </div>
+      </div>
+
+      <div class="fs-controls">
+        <button class="fs-ctrl secondary" onclick="toggleShuffle()"><i class="fas fa-random"></i></button>
+        <button class="fs-ctrl main" onclick="prevTrack()"><i class="fas fa-step-backward"></i></button>
+        <button class="fs-ctrl play-btn" onclick="togglePlay()"><i class="fas fa-play" id="fs-play-icon"></i></button>
+        <button class="fs-ctrl main" onclick="nextTrack()"><i class="fas fa-step-forward"></i></button>
+        <button class="fs-ctrl secondary" onclick="toggleRepeat()"><i class="fas fa-redo"></i></button>
+      </div>
+
+      <div class="fs-footer">
+        <button onclick="toggleQueue()"><i class="fas fa-list"></i></button>
+        <button onclick="toggleMute()"><i class="fas fa-volume-up"></i></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════  TOAST  ═══════════════ -->
   <div class="toast" id="toast"></div>
 
