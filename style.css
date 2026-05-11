@@ -41,7 +41,7 @@ body {
     "sidebar main"
     "player  player";
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -158,6 +158,7 @@ body {
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(139,0,255,.1);
   gap: 16px;
+  overflow-x: hidden;
 }
 .topbar-left { display: flex; gap: 8px; }
 .nav-arrow {
@@ -695,6 +696,8 @@ input[type=range]:hover { background: rgba(255,255,255,.25); }
   .main-content {
     padding-bottom: 140px; /* space for mini-player + bottom-nav */
     overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   /* topbar */
